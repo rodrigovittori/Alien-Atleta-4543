@@ -1,37 +1,43 @@
 #pgzero
-# [M6.L3] Actividad 8 "Cristales (adicional)"
+"""
+NOTA 1: El código de este proyecto está publicado en el repo:
+        > https://github.com/rodrigovittori/Alien-Atleta-4543
+    
+NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
+        pueden obtener más modelos en: https://kenney.nl/assets/platformer-pack-redux
+        y revisar la colección completa en: https://kenney.nl/assets/series:Platformer%20Pack  
 
-WIDTH = 200 # Ancho de la ventana
-HEIGHT = 200 # Altura de la ventana
+---------------------------------------------------------------------------------------------------
 
-TITLE = "Cristales 🔮" # Título para la ventana del juego
+    [M6.L3] - Actividad #9 y #10: Homework/Tareas
+    Objetivo: Agregar el primer obstáculo
+
+    NOTA: Nosotros ya lo resolvimos, nos vemos la clase que viene
+    TAREA: En base a lo que apredieron con el engranaje y los cristales,
+           modifiquen el código para que la caja y nuestro personaje NO puedan salir
+           de la pantalla de juego. """
+
+WIDTH = 600 # Ancho de la ventana (en px)
+HEIGHT = 300 # Alto de la ventana (en px)
+
+TITLE = "Juego del Alien Atleta y sus piruetas" # Título para la ventana del juego
 FPS = 30 # Número de fotogramas por segundo
 
-# Crea un personaje aquí
-blue = Actor('blue', (20, 20))
-red = Actor('red', (180, 20))
-yellow = Actor('yellow', (180, 180))
-green = Actor('green', (20, 180))
-s = 1
+""" > Vamos a crear nuestro personaje :D """
+fondo = Actor("background")           # Nuestro fondo NO tiene posición porque queremos que ocupe TODA la pantalla
+personaje = Actor("alien", (50, 240)) # Nuestro personaje SI la tiene, las coordenadas se registran en pos(x, y)
+caja = Actor("box", (WIDTH - 50, 265))
 
-def draw():
-    screen.fill('white')
-    blue.draw()
-    red.draw()
-    yellow.draw()
-    green.draw()
+def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja objetos en pantalla
+    fondo.draw()
+    personaje.draw()
+    caja.draw()
 
-    screen.draw.text(str(s), (30,30), color = "black" )
+def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
 
-def update(dt):
-    global s
-    # Escribe tu código debajo
-    blue.pos    = (blue.x    + (1 * s), blue.y   + (1 * s))
-    red.pos     = (red.x     - (1 * s), red.y    + (1 * s))
-    yellow.pos  = (yellow.x  - (1 * s), yellow.y - (1 * s))
-    green.pos   = (green.x   + (1 * s), green.y  - (1 * s))
-
-    # Rebote / cambiar sentido (s)
-    if ( ( blue.pos == ((WIDTH/2), (HEIGHT/2)) ) or 
-         ( blue.pos == (19, 19)) ):
-        s *= -1
+    # Mover al personaje:
+    personaje.x += 5 # mover el personaje 5 px a la derecha en cada frame
+    
+    # Mover la caja:
+    caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+    caja.angle += 5 # roto la caja 5 grados cada frame
