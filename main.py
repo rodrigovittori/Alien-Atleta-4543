@@ -9,12 +9,16 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M6.L4] - Actividad Nº 3: "Controles"
-    Objetivo: Agregar controles para el movimiento del personaje
-    Nota: EN ESTA ACTIVIDAD agregaremos los límites para evitar que se salga de la pantalla de juego
+    [M6.L4] - Actividad Nº 5: "Salto"
+    Objetivo: Agregar la lógica necesaria para implementar un salto
 
-    Paso Nº 1) Crearemos un atributo "velocidad" en nuestro personaje
-    Paso Nº 2) Modificamos el código en update() agregando condiciones de teclado y límites al PJ
+    NOTA: La actividad Nº 4 NO FORMA PARTE del proyecto
+
+    Paso Nº 1) Vamos a crear las variables necesarias para el sistema de salto: COOLDOWN_SALTO, timer_salto y altura_salto
+    Paso Nº 2) Agregamos como variable global timer_salto en updatey en on_key_down
+    Paso Nº 3) Comentamos el código de anim en on_key_down
+    Paso Nº 4) Agregamos la lógica de control de salto (en on_key_down)
+    Paso Nº 5) Agregamos un indicador de salto en draw()
 
 """
 
@@ -27,6 +31,11 @@ FPS = 30 # Número de fotogramas por segundo
 """ > Vamos a crear nuestro personaje :D """
 fondo = Actor("background")           # Nuestro fondo NO tiene posición porque queremos que ocupe TODA la pantalla
 personaje = Actor("alien", (50, 240)) # Nuestro personaje SI la tiene, las coordenadas se registran en pos(x, y)
+
+personaje.COOLDOWN_SALTO = 0.7        # tiempo de recarga habilidad salto (en segundos)
+personaje.timer_salto = 0             # tiempo que debe pasar (en segundos) antes de que nuestro personaje pueda saltar nuevamente
+personaje.altura_salto = int(personaje.height * 1.6) # El personaje saltará 1.6 veces su altura
+
 personaje.velocidad = 5               # velocidad (en px) a la que avanza el personaje por cada frame
 
 """ Nota: Si quisieramos facilitar la tarea de "reiniciar"/"resetear"
@@ -49,22 +58,39 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
     fondo.draw()
     personaje.draw()
     caja.draw()
-    screen.draw.text(("X= " + str(personaje.x)), (30,30), background="white", color="black", fontsize=24)
+    
+    if (personaje.timer_salto <= 0):
+        screen.draw.text("¡LISTO!", midleft=(20,20), color = (0, 255, 0), fontsize=24)
+    else:
+        screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)    
 
 def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
 
     # Podemos traducir "update" como "actualizar", es decir, en ella contendremos el código que produzca cambios en nuestro juego
 
-    # Actualizamos el personaje:
+      #######################
+     # CAMBIOS AUTOMATICOS #
+    #######################
+
+    personaje.timer_salto -= dt # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
+
+      ################
+     # LEER TECLADO #
+    ################
+    
+    # Movimiento del personaje:
     if ( (keyboard.right or keyboard.d) and ( personaje.x < ( WIDTH - int(personaje.width / 2) ) ) ):
         personaje.x += personaje.velocidad
 
     if ( (keyboard.left or keyboard.a) and ( personaje.x > int(personaje.width / 2) ) ):
         personaje.x -= personaje.velocidad
+
+    # Salto: lo implementamos en OnKeyDown(key)
     
     ###################################################################################
     
-    # Mover la caja:
+    # Mover la caja - NOTA/TO-DO: Migrar a una función
+    
     if (caja.x < 0):       # Si la caja salió de la ventana de juego...
         caja.x += WIDTH    # La llevamos a la otra punta de la pantalla
     else:
@@ -73,3 +99,18 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
 
     # Rotar la caja
     caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
+
+
+def on_key_down(key): # Este método se activa al presionar una tecla
+    # https://pygame-zero.readthedocs.io/en/stable/hooks.html?highlight=on_key_down#on_key_down
+
+    if (
+         (keyboard.space or keyboard.w or keyboard.up) and   # Parte 1 de la cond: presionar tecla
+         (personaje.timer_salto <= 0) and                    # Parte 2 de la cond: timer listo
+         (personaje.y > int(personaje.height / 2))           # Parte 3 de la cond: el PJ NO ha salido de la pantalla
+       ):
+        
+        personaje.timer_salto = personaje.COOLDOWN_SALTO                # Reseteamos cooldown
+        personaje.y -= personaje.altura_salto                           # El PJ "salta" (cambiamos su altura)
+        animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída
+    
