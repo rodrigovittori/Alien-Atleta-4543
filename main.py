@@ -9,16 +9,16 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M6.L4] - Actividad Nº 5: "Salto"
-    Objetivo: Agregar la lógica necesaria para implementar un salto
+    [M6.L4] - Actividad Nº 7: "Cambiando Sprites"
+    Objetivo: Agregar la lógica necesaria para que el sprite del personaje cambie según las acciones del jugador
 
-    NOTA: La actividad Nº 4 NO FORMA PARTE del proyecto
+    NOTA: La Actividad Nº 6 se resuelve con el código de la Actividad Nº 5
 
-    Paso Nº 1) Vamos a crear las variables necesarias para el sistema de salto: COOLDOWN_SALTO, timer_salto y altura_salto
-    Paso Nº 2) Agregamos como variable global timer_salto en updatey en on_key_down
-    Paso Nº 3) Comentamos el código de anim en on_key_down
-    Paso Nº 4) Agregamos la lógica de control de salto (en on_key_down)
-    Paso Nº 5) Agregamos un indicador de salto en draw()
+    Paso Nº 1) Crear una variable global para almacenar la imágen que vamos a asignar al actor en cada frame.
+    Paso Nº 2) Agregamos en update como variable global la variable nva_imagen
+    Paso Nº 3) Asignamos un sprite por defecto al iniciar update (en la vble nva_imagen)
+    Paso Nº 4) Agregamos en las condiciones de movimiento un cambio de valor de nva_imagen
+    Paso Nº 5) Post-input actualizamos el sprite del personaje para que sea la imágen almacenada en nuestra variable
 
 """
 
@@ -51,8 +51,11 @@ personaje.velocidad = 5               # velocidad (en px) a la que avanza el per
             personaje.pos = personaje.posInicial
 """
 
-
 caja = Actor("box", (WIDTH - 50, 265))
+
+nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha.
+
+##################################################################
 
 def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja objetos en pantalla
     fondo.draw()
@@ -65,9 +68,9 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
         screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)    
 
 def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
-
     # Podemos traducir "update" como "actualizar", es decir, en ella contendremos el código que produzca cambios en nuestro juego
-
+    global nva_imagen
+    
       #######################
      # CAMBIOS AUTOMATICOS #
     #######################
@@ -81,11 +84,15 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
     # Movimiento del personaje:
     if ( (keyboard.right or keyboard.d) and ( personaje.x < ( WIDTH - int(personaje.width / 2) ) ) ):
         personaje.x += personaje.velocidad
+        nva_imagen = "right"
 
     if ( (keyboard.left or keyboard.a) and ( personaje.x > int(personaje.width / 2) ) ):
         personaje.x -= personaje.velocidad
+        nva_imagen = "left"
 
     # Salto: lo implementamos en OnKeyDown(key)
+    """ POST INPUT """
+    personaje.image = nva_imagen # Actualizamos el sprite del personaje
     
     ###################################################################################
     
@@ -112,5 +119,6 @@ def on_key_down(key): # Este método se activa al presionar una tecla
         
         personaje.timer_salto = personaje.COOLDOWN_SALTO                # Reseteamos cooldown
         personaje.y -= personaje.altura_salto                           # El PJ "salta" (cambiamos su altura)
+        # TO-DO: Agregar cambio de sprite al saltar
         animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída
     
