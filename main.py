@@ -9,17 +9,19 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L1] - Actividad Nº 2: "Colisión con una abeja"
-    Objetivo: Agregar lógica de colisión para la abeja
+    [M7.L1] - Actividad Nº 3: "Game Over"
+    Objetivo: Implementar condiciones de derrota, ventana de fin de juego y una condición para reiniciar el juego
 
-    NOTA: En el programa han eliminado la actividad donde creábamos la abeja, así que toca crearla en éste ejercicio.
-
-    Paso Nº 1) Crear el actor de la abeja
-    Paso Nº 2) Agregar la abeja en draw()
-    Paso Nº 3) Agregamos el movimiento automático de la abeja
-                > Ajustar la posición inicial de la caja y la abeja para evitar que lleguen al mismo tiempo hacia el personaje
-    Paso Nº 4) Agregar la colisión contra la abeja con un "or"
-
+    Paso Nº 1) Crear actor cartel_game_over
+    Paso Nº 2) Creamos una variable llamada "game_over" que comprueba si la partida ha terminado
+    Paso Nº 3) En caso de colisión game_over debe ser verdadero
+                > en update() agregar como vble global a game_over
+                > agregar el cambio de valor en caso de colisión
+    Paso Nº 4) Modificamos nuestro draw() para mostrar el mensaje de fin de juego y prompt para reiniciar en caso de perder
+    Paso Nº 5) Modificamos update() y on_key_down() para que en caso de game_over no sigan moviéndose los obstáculos
+    Paso Nº 6) Agregamos condición para reiniciar el juego al presionar [Enter]
+    Paso Nº 7) 
+    
 """
 
 WIDTH = 600 # Ancho de la ventana (en px)
@@ -30,6 +32,7 @@ FPS = 30 # Número de fotogramas por segundo
 
 """ > Vamos a crear nuestro personaje :D """
 fondo = Actor("background")           # Nuestro fondo NO tiene posición porque queremos que ocupe TODA la pantalla
+cartel_game_over = Actor("GO")        # Splash Screen de Game Over
 personaje = Actor("alien", (50, 240)) # Nuestro personaje SI la tiene, las coordenadas se registran en pos(x, y)
 
 personaje.COOLDOWN_SALTO = 0.7        # tiempo de recarga habilidad salto (en segundos)
@@ -59,106 +62,141 @@ caja = Actor("box", (WIDTH - 50, 265))
 abeja = Actor("bee", (WIDTH + 200, 150))
 
 nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha. / "duck" : agachado / "hurt" : dañado
+game_over = False    # Vble que registra si nuestra partida ha finalizado o no
 
 ##################################################################
 
 def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja objetos en pantalla
-    fondo.draw()
-    personaje.draw()
-    caja.draw()
-    abeja.draw()
-    
-    if (personaje.timer_salto <= 0):
-        screen.draw.text("¡LISTO!", midleft=(20,20), color = (0, 255, 0), fontsize=24)
+    if (game_over):
+        # Si bien en este caso el cartel de Game Over cubre toda la pantalla, 
+        # sería mejor solamente agregar el texto GAME OVER y dibjar el fondo
+        fondo.draw() 
+        cartel_game_over.draw()
+        # To-Do: Agregar puntuación final más adelante
+        screen.draw.text("Presiona [Enter] para reiniciar", center= (int(WIDTH/2), 2* int(HEIGHT/3)), color = "white", fontsize = 32)
+        
     else:
-        screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)    
+        fondo.draw()
+        personaje.draw()
+        caja.draw()
+        abeja.draw()
+        
+        if (personaje.timer_salto <= 0):
+            screen.draw.text("¡LISTO!", midleft=(20,20), color = (0, 255, 0), fontsize=24)
+        else:
+            screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)    
 
 def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
     # Podemos traducir "update" como "actualizar", es decir, en ella contendremos el código que produzca cambios en nuestro juego
-    global nva_imagen
-    
-      #######################
-     # CAMBIOS AUTOMATICOS #
-    #######################
+    global nva_imagen, game_over
 
-    nva_imagen = "alien"           # Si el personaje NO se mueve, tomamos este sprite por defecto
-    personaje.timer_salto -= dt    # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
-    personaje.timer_agachado -= dt # restamos al timer para resetar la altura del persoanje el tiempo desde el último frame
+    if (game_over):
+        # En caso de game over
+        if (keyboard.enter):
+            """ Reiniciar el juego """ # Nota: migrar a función
+            game_over = False
+            # To-do: reiniciar puntuación
+            # Reseteamos personaje
+            personaje.pos = (50, 240)
+            personaje.timer_salto = 0
+            personaje.timer_agachado = 0.0
+            personaje.esta_agachado = False
+            personaje.velocidad = 5
+            nva_imagen = "alien"
+            # Reseteamos caja
+            caja.pos = (WIDTH - 50, 265)
+            caja.angle = 0
+            # Reseteamos abeja
+            abeja.pos = (WIDTH + 200, 150)
+            # Resetear velocidad enelmigos/obstáculos
 
-    if ((personaje.timer_agachado <= 0) and (personaje.esta_agachado)):
-        personaje.y = 240       # Reseteamos la altura del PJ (Si hemos creado una vble posInicial, lo tomamos de ese valor)
-        personaje.esta_agachado = False
-
-      ################
-     # LEER TECLADO #
-    ################
-    
-    # Movimiento del personaje:
-    if ( (keyboard.right or keyboard.d) and ( personaje.x < ( WIDTH - int(personaje.width / 2) ) ) ):
-        personaje.x += personaje.velocidad
-        nva_imagen = "right"
-
-    if ( (keyboard.left or keyboard.a) and ( personaje.x > int(personaje.width / 2) ) ):
-        personaje.x -= personaje.velocidad
-        nva_imagen = "left"
-
-    if (keyboard.down or keyboard.s):
-        personaje.y = 260    # Bajamos el pj
-        nva_imagen = "duck"
-        personaje.timer_agachado = 0.1 # tiempo que nuestro PJ seguirá agachado DESPUÉS de soltar la tecla
-        personaje.esta_agachado = True
+    else:
         
-    # Salto: lo implementamos en OnKeyDown(key)
-
-    """  ########################
-        # COMPROBAR COLISIONES #
-       ########################   """
-
-    # Nota: migrar a función comprobar_colisiones()
-
-    if ( personaje.colliderect(caja) or personaje.colliderect(abeja) ):
-        if (nva_imagen != "hurt"):
-            nva_imagen = "hurt"
+          #######################
+         # CAMBIOS AUTOMATICOS #
+        #######################
     
-    """ POST INPUT """
-    personaje.image = nva_imagen # Actualizamos el sprite del personaje
+        nva_imagen = "alien"           # Si el personaje NO se mueve, tomamos este sprite por defecto
+        personaje.timer_salto -= dt    # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
+        personaje.timer_agachado -= dt # restamos al timer para resetar la altura del persoanje el tiempo desde el último frame
     
-    ###################################################################################
-
-    """  ####################
-        # MOVER OBSTÁCULOS #
-       ####################   """
+        if ((personaje.timer_agachado <= 0) and (personaje.esta_agachado)):
+            personaje.y = 240       # Reseteamos la altura del PJ (Si hemos creado una vble posInicial, lo tomamos de ese valor)
+            personaje.esta_agachado = False
     
-    # Mover la caja - NOTA/TO-DO: Migrar a una función
+          ################
+         # LEER TECLADO #
+        ################
+        
+        # Movimiento del personaje:
+        if ( (keyboard.right or keyboard.d) and ( personaje.x < ( WIDTH - int(personaje.width / 2) ) ) ):
+            personaje.x += personaje.velocidad
+            nva_imagen = "right"
     
-    if (caja.x < 0):      # Si la caja salió de la ventana de juego...
-        caja.x += WIDTH   # La llevamos a la otra punta de la pantalla
-    else:
-        # Si todavía no se escapa de la ventana...
-        caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
-
-    # Rotar la caja
-    caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
-
-
-    # Mover la abeja - NOTA/TO-DO: Migrar a una función
+        if ( (keyboard.left or keyboard.a) and ( personaje.x > int(personaje.width / 2) ) ):
+            personaje.x -= personaje.velocidad
+            nva_imagen = "left"
     
-    if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
-        abeja.x += WIDTH    # La llevamos a la otra punta de la pantalla
-    else:
-        # Si todavía no se escapa de la ventana...
-        abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+        if (keyboard.down or keyboard.s):
+            personaje.y = 260    # Bajamos el pj
+            nva_imagen = "duck"
+            personaje.timer_agachado = 0.1 # tiempo que nuestro PJ seguirá agachado DESPUÉS de soltar la tecla
+            personaje.esta_agachado = True
+            
+        # Salto: lo implementamos en OnKeyDown(key)
+    
+        """  ########################
+            # COMPROBAR COLISIONES #
+           ########################   """
+    
+        # Nota: migrar a función comprobar_colisiones()
+    
+        if ( personaje.colliderect(caja) or personaje.colliderect(abeja) ):
+            if (nva_imagen != "hurt"):
+                nva_imagen = "hurt"
+                game_over = True
+        
+        """ POST INPUT """
+        personaje.image = nva_imagen # Actualizamos el sprite del personaje
+        
+        ###################################################################################
+    
+        """  ####################
+            # MOVER OBSTÁCULOS #
+           ####################   """
+        
+        # Mover la caja - NOTA/TO-DO: Migrar a una función
+        
+        if (caja.x < 0):      # Si la caja salió de la ventana de juego...
+            caja.x += WIDTH   # La llevamos a la otra punta de la pantalla
+        else:
+            # Si todavía no se escapa de la ventana...
+            caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+    
+        # Rotar la caja
+        caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
+    
+    
+        # Mover la abeja - NOTA/TO-DO: Migrar a una función
+        
+        if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
+            abeja.x += WIDTH    # La llevamos a la otra punta de la pantalla
+        else:
+            # Si todavía no se escapa de la ventana...
+            abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
 
-def on_key_down(key): # Este método se activa al presionar una tecla
+def on_key_down(key):
+    global game_over
+    # Este método se activa al presionar una tecla
     # https://pygame-zero.readthedocs.io/en/stable/hooks.html?highlight=on_key_down#on_key_down
-
-    if (
-         (keyboard.space or keyboard.w or keyboard.up) and   # Parte 1 de la cond: presionar tecla
-         (personaje.timer_salto <= 0) and                    # Parte 2 de la cond: timer listo
-         (personaje.y > int(personaje.height / 2))           # Parte 3 de la cond: el PJ NO ha salido de la pantalla
-       ):
-        
-        personaje.timer_salto = personaje.COOLDOWN_SALTO                # Reseteamos cooldown
-        personaje.y -= personaje.altura_salto                           # El PJ "salta" (cambiamos su altura)
-        # TO-DO: Agregar cambio de sprite al saltar
-        animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída 
+    if (not game_over):
+        if (
+             (keyboard.space or keyboard.w or keyboard.up) and   # Parte 1 de la cond: presionar tecla
+             (personaje.timer_salto <= 0) and                    # Parte 2 de la cond: timer listo
+             (personaje.y > int(personaje.height / 2))           # Parte 3 de la cond: el PJ NO ha salido de la pantalla
+           ):
+            
+            personaje.timer_salto = personaje.COOLDOWN_SALTO                # Reseteamos cooldown
+            personaje.y -= personaje.altura_salto                           # El PJ "salta" (cambiamos su altura)
+            # TO-DO: Agregar cambio de sprite al saltar
+            animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída 
