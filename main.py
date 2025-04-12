@@ -9,16 +9,18 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M6.L4] - Actividad Nº 7: "Cambiando Sprites"
-    Objetivo: Agregar la lógica necesaria para que el sprite del personaje cambie según las acciones del jugador
+    [M6.L4] - Actividad Nº 9 y 10 (Extras): "Esquivando"
+    Objetivo: Agregar la lógica necesaria para que nuestro personaje pueda agacharse
 
-    NOTA: La Actividad Nº 6 se resuelve con el código de la Actividad Nº 5
+    NOTA: La primer tarea extra ("Controles mejorados") ya la cumple nuestro código anterior
 
-    Paso Nº 1) Crear una variable global para almacenar la imágen que vamos a asignar al actor en cada frame.
-    Paso Nº 2) Agregamos en update como variable global la variable nva_imagen
-    Paso Nº 3) Asignamos un sprite por defecto al iniciar update (en la vble nva_imagen)
-    Paso Nº 4) Agregamos en las condiciones de movimiento un cambio de valor de nva_imagen
-    Paso Nº 5) Post-input actualizamos el sprite del personaje para que sea la imágen almacenada en nuestra variable
+    Paso Nº 1) Agregar check para cuando se presione la tecla "s" o la flecha hacia abajo
+    Paso Nº 2) Modificar la altura del personaje cuando se presione la tecla
+    Paso Nº 3) Cambiar el sprite del personaje
+    Paso Nº 4) Crear dos atributos "esta_agachado" y "timer_agachado" para controlar cuando deshacemos los cambios
+    Paso Nº 5) Implementar la lógica de reseteo de la altura
+
+    Nota: Para evitar que al agacharse se anule la animación de salto DEBERÍAMOS implementar un check para prevenirlo
 
 """
 
@@ -35,6 +37,10 @@ personaje = Actor("alien", (50, 240)) # Nuestro personaje SI la tiene, las coord
 personaje.COOLDOWN_SALTO = 0.7        # tiempo de recarga habilidad salto (en segundos)
 personaje.timer_salto = 0             # tiempo que debe pasar (en segundos) antes de que nuestro personaje pueda saltar nuevamente
 personaje.altura_salto = int(personaje.height * 1.6) # El personaje saltará 1.6 veces su altura
+
+""" Nota: Para evitar que al agacharse se anule la animación de salto DEBERÍAMOS implementar un check para prevenirlo """
+personaje.timer_agachado = 0.0        # Tiempo restante (en segundos) antes de poner de pie al personaje
+personaje.esta_agachado = False       # Valor que controla si debemos permanecer agachados o no
 
 personaje.velocidad = 5               # velocidad (en px) a la que avanza el personaje por cada frame
 
@@ -75,7 +81,13 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
      # CAMBIOS AUTOMATICOS #
     #######################
 
-    personaje.timer_salto -= dt # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
+    nva_imagen = "alien"           # Si el personaje NO se mueve, tomamos este sprite por defecto
+    personaje.timer_salto -= dt    # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
+    personaje.timer_agachado -= dt # restamos al timer para resetar la altura del persoanje el tiempo desde el último frame
+
+    if ((personaje.timer_agachado <= 0) and (personaje.esta_agachado)):
+        personaje.y = 240       # Reseteamos la altura del PJ (Si hemos creado una vble posInicial, lo tomamos de ese valor)
+        personaje.esta_agachado = False
 
       ################
      # LEER TECLADO #
@@ -90,6 +102,12 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
         personaje.x -= personaje.velocidad
         nva_imagen = "left"
 
+    if (keyboard.down or keyboard.s):
+        personaje.y = 260    # Bajamos el pj
+        nva_imagen = "duck"
+        personaje.timer_agachado = 0.1 # tiempo que nuestro PJ seguirá agachado DESPUÉS de soltar la tecla
+        personaje.esta_agachado = True
+        
     # Salto: lo implementamos en OnKeyDown(key)
     """ POST INPUT """
     personaje.image = nva_imagen # Actualizamos el sprite del personaje
