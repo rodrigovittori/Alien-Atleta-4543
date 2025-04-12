@@ -9,18 +9,16 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L1] - Actividad Nº 3: "Game Over"
-    Objetivo: Implementar condiciones de derrota, ventana de fin de juego y una condición para reiniciar el juego
+    [M7.L1] - Actividad Nº 5: "Puntuación"
+    Objetivo: Implementar un sistema de puntuación que registre la cant. de enemigos esquivados
 
-    Paso Nº 1) Crear actor cartel_game_over
-    Paso Nº 2) Creamos una variable llamada "game_over" que comprueba si la partida ha terminado
-    Paso Nº 3) En caso de colisión game_over debe ser verdadero
-                > en update() agregar como vble global a game_over
-                > agregar el cambio de valor en caso de colisión
-    Paso Nº 4) Modificamos nuestro draw() para mostrar el mensaje de fin de juego y prompt para reiniciar en caso de perder
-    Paso Nº 5) Modificamos update() y on_key_down() para que en caso de game_over no sigan moviéndose los obstáculos
-    Paso Nº 6) Agregamos condición para reiniciar el juego al presionar [Enter]
-    Paso Nº 7) 
+    Nota: El ejercicio 4 ya estaba resuelto.
+    Nota 2: Podríamos implementar un aumento progresivo de la velocidad de nuestros enemigos
+
+    Paso Nº 1) Creamos una variable que almacene nuestra puntuación
+    Paso Nº 2) Modifico el draw() para que muestre la puntuación
+    Paso Nº 3) Modifico el reset para que reinicie nuestra puntuación
+    Paso Nº 4) Aumentaremos la puntuación cada vez que un enemigo haya abandonado la pantalla
     
 """
 
@@ -63,6 +61,7 @@ abeja = Actor("bee", (WIDTH + 200, 150))
 
 nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha. / "duck" : agachado / "hurt" : dañado
 game_over = False    # Vble que registra si nuestra partida ha finalizado o no
+puntuacion = 0       # Cantidad de enemigos esquivados
 
 ##################################################################
 
@@ -72,8 +71,9 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
         # sería mejor solamente agregar el texto GAME OVER y dibjar el fondo
         fondo.draw() 
         cartel_game_over.draw()
-        # To-Do: Agregar puntuación final más adelante
-        screen.draw.text("Presiona [Enter] para reiniciar", center= (int(WIDTH/2), 2* int(HEIGHT/3)), color = "white", fontsize = 32)
+        # Nota: modificamos la altura del otro mensaje para mostrar más info:
+        screen.draw.text(("Enemigos esquivados: " + str(puntuacion)), center= (int(WIDTH/2), 2* int(HEIGHT/3)), color = "yellow", fontsize = 24)
+        screen.draw.text("Presiona [Enter] para reiniciar", center= (int(WIDTH/2), 4* int(HEIGHT/5)), color = "white", fontsize = 32)
         
     else:
         fondo.draw()
@@ -84,18 +84,20 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
         if (personaje.timer_salto <= 0):
             screen.draw.text("¡LISTO!", midleft=(20,20), color = (0, 255, 0), fontsize=24)
         else:
-            screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)    
+            screen.draw.text(str(personaje.timer_salto), midleft=(20,20), color = "red", fontsize=24)
+
+        screen.draw.text(("Enemigos esquivados: " + str(puntuacion)), midright=(WIDTH-20, 20), color ="black", background="white", fontsize=24)
 
 def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
     # Podemos traducir "update" como "actualizar", es decir, en ella contendremos el código que produzca cambios en nuestro juego
-    global nva_imagen, game_over
+    global nva_imagen, game_over, puntuacion
 
     if (game_over):
         # En caso de game over
         if (keyboard.enter):
             """ Reiniciar el juego """ # Nota: migrar a función
             game_over = False
-            # To-do: reiniciar puntuación
+            puntuacion = 0
             # Reseteamos personaje
             personaje.pos = (50, 240)
             personaje.timer_salto = 0
@@ -169,6 +171,7 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
         
         if (caja.x < 0):      # Si la caja salió de la ventana de juego...
             caja.x += WIDTH   # La llevamos a la otra punta de la pantalla
+            puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
         else:
             # Si todavía no se escapa de la ventana...
             caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
@@ -181,6 +184,7 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
         
         if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
             abeja.x += WIDTH    # La llevamos a la otra punta de la pantalla
+            puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
         else:
             # Si todavía no se escapa de la ventana...
             abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
