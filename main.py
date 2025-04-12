@@ -9,11 +9,16 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L1] - Actividad Nº 1: Método Colliderect
-    Objetivo: Cambiar el sprite del personaje cuando éste entre en colisión con la caja
+    [M7.L1] - Actividad Nº 2: "Colisión con una abeja"
+    Objetivo: Agregar lógica de colisión para la abeja
 
-    Paso Nº 1) Agregar condición en update() que chequee si se dá una colisión entre PJ y caja
-    Paso Nº 2) Si se dá la colisión, cambiamos la imágen a "hurt"
+    NOTA: En el programa han eliminado la actividad donde creábamos la abeja, así que toca crearla en éste ejercicio.
+
+    Paso Nº 1) Crear el actor de la abeja
+    Paso Nº 2) Agregar la abeja en draw()
+    Paso Nº 3) Agregamos el movimiento automático de la abeja
+                > Ajustar la posición inicial de la caja y la abeja para evitar que lleguen al mismo tiempo hacia el personaje
+    Paso Nº 4) Agregar la colisión contra la abeja con un "or"
 
 """
 
@@ -51,8 +56,9 @@ personaje.velocidad = 5               # velocidad (en px) a la que avanza el per
 """
 
 caja = Actor("box", (WIDTH - 50, 265))
+abeja = Actor("bee", (WIDTH + 200, 150))
 
-nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha.
+nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha. / "duck" : agachado / "hurt" : dañado
 
 ##################################################################
 
@@ -60,6 +66,7 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
     fondo.draw()
     personaje.draw()
     caja.draw()
+    abeja.draw()
     
     if (personaje.timer_salto <= 0):
         screen.draw.text("¡LISTO!", midleft=(20,20), color = (0, 255, 0), fontsize=24)
@@ -109,7 +116,7 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
 
     # Nota: migrar a función comprobar_colisiones()
 
-    if personaje.colliderect(caja):
+    if ( personaje.colliderect(caja) or personaje.colliderect(abeja) ):
         if (nva_imagen != "hurt"):
             nva_imagen = "hurt"
     
@@ -117,17 +124,30 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
     personaje.image = nva_imagen # Actualizamos el sprite del personaje
     
     ###################################################################################
+
+    """  ####################
+        # MOVER OBSTÁCULOS #
+       ####################   """
     
     # Mover la caja - NOTA/TO-DO: Migrar a una función
     
-    if (caja.x < 0):       # Si la caja salió de la ventana de juego...
-        caja.x += WIDTH    # La llevamos a la otra punta de la pantalla
+    if (caja.x < 0):      # Si la caja salió de la ventana de juego...
+        caja.x += WIDTH   # La llevamos a la otra punta de la pantalla
     else:
         # Si todavía no se escapa de la ventana...
         caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
 
     # Rotar la caja
     caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
+
+
+    # Mover la abeja - NOTA/TO-DO: Migrar a una función
+    
+    if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
+        abeja.x += WIDTH    # La llevamos a la otra punta de la pantalla
+    else:
+        # Si todavía no se escapa de la ventana...
+        abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
 
 def on_key_down(key): # Este método se activa al presionar una tecla
     # https://pygame-zero.readthedocs.io/en/stable/hooks.html?highlight=on_key_down#on_key_down
