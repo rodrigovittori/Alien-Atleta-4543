@@ -9,18 +9,11 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M6.L4] - Actividad Nº 9 y 10 (Extras): "Esquivando"
-    Objetivo: Agregar la lógica necesaria para que nuestro personaje pueda agacharse
+    [M7.L1] - Actividad Nº 1: Método Colliderect
+    Objetivo: Cambiar el sprite del personaje cuando éste entre en colisión con la caja
 
-    NOTA: La primer tarea extra ("Controles mejorados") ya la cumple nuestro código anterior
-
-    Paso Nº 1) Agregar check para cuando se presione la tecla "s" o la flecha hacia abajo
-    Paso Nº 2) Modificar la altura del personaje cuando se presione la tecla
-    Paso Nº 3) Cambiar el sprite del personaje
-    Paso Nº 4) Crear dos atributos "esta_agachado" y "timer_agachado" para controlar cuando deshacemos los cambios
-    Paso Nº 5) Implementar la lógica de reseteo de la altura
-
-    Nota: Para evitar que al agacharse se anule la animación de salto DEBERÍAMOS implementar un check para prevenirlo
+    Paso Nº 1) Agregar condición en update() que chequee si se dá una colisión entre PJ y caja
+    Paso Nº 2) Si se dá la colisión, cambiamos la imágen a "hurt"
 
 """
 
@@ -109,6 +102,17 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
         personaje.esta_agachado = True
         
     # Salto: lo implementamos en OnKeyDown(key)
+
+    """  ########################
+        # COMPROBAR COLISIONES #
+       ########################   """
+
+    # Nota: migrar a función comprobar_colisiones()
+
+    if personaje.colliderect(caja):
+        if (nva_imagen != "hurt"):
+            nva_imagen = "hurt"
+    
     """ POST INPUT """
     personaje.image = nva_imagen # Actualizamos el sprite del personaje
     
@@ -125,7 +129,6 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
     # Rotar la caja
     caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
 
-
 def on_key_down(key): # Este método se activa al presionar una tecla
     # https://pygame-zero.readthedocs.io/en/stable/hooks.html?highlight=on_key_down#on_key_down
 
@@ -138,5 +141,4 @@ def on_key_down(key): # Este método se activa al presionar una tecla
         personaje.timer_salto = personaje.COOLDOWN_SALTO                # Reseteamos cooldown
         personaje.y -= personaje.altura_salto                           # El PJ "salta" (cambiamos su altura)
         # TO-DO: Agregar cambio de sprite al saltar
-        animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída
-    
+        animate(personaje, tween="bounce_end", duration = 2, y = 240)   # Activamos la animación de caída 
