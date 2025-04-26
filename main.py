@@ -9,16 +9,17 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L1] - Actividad Nº 5: "Puntuación"
-    Objetivo: Implementar un sistema de puntuación que registre la cant. de enemigos esquivados
+    [M7.L1] - Actividad #7 (Extra): "Dividir a los enemigos"
+    # Objetivo: En la pantalla de Game Over mostrar un mensaje que cambie
+                según el tipo de enemigo/obstáculo que nos venció
 
-    Nota: El ejercicio 4 ya estaba resuelto.
-    Nota 2: Podríamos implementar un aumento progresivo de la velocidad de nuestros enemigos
+    Paso Nº 1) Creamos una variable (global) que almacene el texto a mostrar según el tipo de colisión
+    Paso Nº 2) Modifico el bloque de colisiones
+    Paso Nº 3) Modifico el draw() para que muestre un mensaje según la colisión
+    Paso Nº 4) Modifico el reset para que reinicie la variable de colision
 
-    Paso Nº 1) Creamos una variable que almacene nuestra puntuación
-    Paso Nº 2) Modifico el draw() para que muestre la puntuación
-    Paso Nº 3) Modifico el reset para que reinicie nuestra puntuación
-    Paso Nº 4) Aumentaremos la puntuación cada vez que un enemigo haya abandonado la pantalla
+    NOTA: Esta tarea no cuenta con el sprite "hurt", por lo que podemos recibir el siguiente error:
+          > ValueError: Image hurt not found
     
 """
 
@@ -63,6 +64,7 @@ nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha
 game_over = False    # Vble que registra si nuestra partida ha finalizado o no
 puntuacion = 0       # Cantidad de enemigos esquivados
 
+
 ##################################################################
 
 def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja objetos en pantalla
@@ -74,6 +76,7 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
         # Nota: modificamos la altura del otro mensaje para mostrar más info:
         screen.draw.text(("Enemigos esquivados: " + str(puntuacion)), center= (int(WIDTH/2), 2* int(HEIGHT/3)), color = "yellow", fontsize = 24)
         screen.draw.text("Presiona [Enter] para reiniciar", center= (int(WIDTH/2), 4* int(HEIGHT/5)), color = "white", fontsize = 32)
+        screen.draw.text(texto_colision, center= (int(WIDTH/2), int(HEIGHT/5)), color = "red", background = "black", fontsize = 24)
         
     else:
         fondo.draw()
@@ -90,7 +93,7 @@ def draw(): # draw() como su nombre lo indica es el método de pgzero que dibuja
 
 def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa delta time (tiempo en segundos entre cada frame)
     # Podemos traducir "update" como "actualizar", es decir, en ella contendremos el código que produzca cambios en nuestro juego
-    global nva_imagen, game_over, puntuacion
+    global nva_imagen, game_over, puntuacion, texto_colision
 
     if (game_over):
         # En caso de game over
@@ -98,6 +101,7 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
             """ Reiniciar el juego """ # Nota: migrar a función
             game_over = False
             puntuacion = 0
+            texto_colision = ""
             # Reseteamos personaje
             personaje.pos = (50, 240)
             personaje.timer_salto = 0
@@ -117,7 +121,8 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
           #######################
          # CAMBIOS AUTOMATICOS #
         #######################
-    
+
+        texto_colision = ""            # Texto que indica el motivo de nuestro Game Over
         nva_imagen = "alien"           # Si el personaje NO se mueve, tomamos este sprite por defecto
         personaje.timer_salto -= dt    # restamos al timer del cooldown de salto del persoanje el tiempo desde el último frame
         personaje.timer_agachado -= dt # restamos al timer para resetar la altura del persoanje el tiempo desde el último frame
@@ -152,12 +157,17 @@ def update(dt): # update(dt) es el bucle ppal de nuestro juego, dt significa del
            ########################   """
     
         # Nota: migrar a función comprobar_colisiones()
-    
-        if ( personaje.colliderect(caja) or personaje.colliderect(abeja) ):
-            if (nva_imagen != "hurt"):
-                nva_imagen = "hurt"
-                game_over = True
         
+        if personaje.colliderect(caja):
+            #nva_imagen = "hurt"
+            texto_colision = "¡Entrega letal!"
+            game_over = True
+
+        elif personaje.colliderect(abeja):
+            #nva_imagen = "hurt"
+            texto_colision = "¡Eres alérgico a las abejas!"
+            game_over = True
+
         """ POST INPUT """
         personaje.image = nva_imagen # Actualizamos el sprite del personaje
         
