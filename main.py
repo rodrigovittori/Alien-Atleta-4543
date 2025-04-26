@@ -11,20 +11,15 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L2] - Actividad #3: "Enemigos aleatorios"
-    # Objetivo: Llamar al próximo obstáculo/enemigo según un valor random
+    [M7.L2] - Actividad #4: "Nivel de dificultad"
+    # Objetivo: Aumentar la velocidad de los enemigos cada vez que esquivemos efectivamente uno de ellos
 
     Modificamos el sistema de obstáculos para actualizar uno a la vez, que se determina de forma aleatoria
 
-
-    Paso Nº 1) Importar el módulo random
-    Paso Nº 2) Crear la vble global "prox_enemigo", que tomará un valor random entre 1 y 2
-               (xq sólo tenemos dos tipos de enemigos)
-    Paso Nº 3) Modificaremos nuestra función actualizar_enemigos() para que SOLO mueva el enemigo seleccionado
-    Paso Nº 4) Agregar a la función reiniciar_juego una condición para reestablecer el valor del prox_enemigo a spwanear
-
-    Nota: Para facilitar las tareas de respawn implementamos posInicial al PJ, abeja y caja
-            > Cambiamos spawn a WIDTH + 50
+    Paso Nº 1) Crear una nueva variable llamada "velocidad_enemigos"
+    Paso Nº 2) Modificar las funciones de movimiento para que los obstáculos/enemigos se desplazen a dicha velocidad
+    Paso Nº 3) Agregar una condición que aumente en uno la velocidad de los enemigos cada vez que esquivemos efectivamente uno de ellos
+    Paso Nº 4) Agregar una condición para resetearlo al reiniciar el juego
 
 """
 
@@ -61,6 +56,7 @@ game_over = False    # Vble que registra si nuestra partida ha finalizado o no
 puntuacion = 0       # Cantidad de enemigos esquivados
 
 prox_enemigo = random.randint(1, 2) # 1: Caja / 2: Abeja
+velocidad_enemigos = 5
 
 ##################################################################
 
@@ -69,7 +65,7 @@ prox_enemigo = random.randint(1, 2) # 1: Caja / 2: Abeja
    #####################  """
 
 def actualizar_enemigos():
-    global puntuacion, prox_enemigo
+    global puntuacion, prox_enemigo, velocidad_enemigos
     """ NOTA: Si cambiamos al velocidad de los enemigos en base a una vble, debemos incluírla """
 
     if (prox_enemigo == 1): 
@@ -79,12 +75,12 @@ def actualizar_enemigos():
             caja.angle = 0
             puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
             prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
+            velocidad_enemigos += 1 # Aumento en 1 la velocidad
         else:
             # Si todavía no se escapa de la ventana...
-            caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
-            
+            caja.x -= velocidad_enemigos     # mover la caja la izquierda en cada frame
             # Rotar la caja
-            caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
+            caja.angle = (caja.angle % 360) + velocidad_enemigos # roto la caja cada frame sin pasarme de 360º
 
     elif (prox_enemigo == 2):
         # Mover la abeja
@@ -92,9 +88,10 @@ def actualizar_enemigos():
             abeja.pos = abeja.posInicial
             puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
             prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
+            velocidad_enemigos += 1 # Aumento en 1 la velocidad
         else:
             # Si todavía no se escapa de la ventana...
-            abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+            abeja.x -= velocidad_enemigos     # mover la caja la izquierda en cada frame
 
 def mover_personaje():
     global nva_imagen
@@ -130,12 +127,11 @@ def detectar_colisiones():
         game_over = True
 
 def reiniciar_juego():
-    global game_over, puntuacion, texto_colision, nva_imagen, prox_enemigo
+    global game_over, puntuacion, texto_colision, nva_imagen, prox_enemigo, velocidad_enemigos
     
     game_over = False
     puntuacion = 0
     texto_colision = ""
-    prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
     # Reseteamos personaje
     nva_imagen = "alien"
     personaje.image = nva_imagen
@@ -144,7 +140,10 @@ def reiniciar_juego():
     personaje.timer_agachado = 0.0
     personaje.esta_agachado = False
     personaje.velocidad = 5
-    
+
+    # Reseteamos enemigos
+    prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
+    velocidad_enemigos = 5
     # Reseteamos caja
     caja.pos = caja.posInicial
     caja.angle = 0
