@@ -1,4 +1,6 @@
 #pgzero
+import random 
+
 """
 NOTA 1: El código de este proyecto está publicado en el repo:
         > https://github.com/rodrigovittori/Alien-Atleta-4543
@@ -9,21 +11,21 @@ NOTA 2: Los assests de este proyecto son del sitio web de Kenney,
 
 ---------------------------------------------------------------------------------------------------
 
-    [M7.L2] - Actividad #2: "Funciones de movimiento"
-    # Objetivo: Migrar la lógica de movimiento de los enemigos a una función avocada a ello
+    [M7.L2] - Actividad #3: "Enemigos aleatorios"
+    # Objetivo: Llamar al próximo obstáculo/enemigo según un valor random
 
-    Paso Nº 1) Creamos una función actualizar_enemigos()
-    Paso Nº 2) Creamos también las funciones: mover_personaje(), detectar_colisiones(), reiniciar_juego()
+    Modificamos el sistema de obstáculos para actualizar uno a la vez, que se determina de forma aleatoria
 
-    Nota 3: Seguimos sin imágen/sprite "hurt"
 
-    Nota 4: Increíblemente si inicalizamos texto_colision con un valor vacío, nos devuelve el siguiente error:
-           > ExternalError:
-                InvalidStateError:
-                    Failed to execute 'drawImage' on 'CanvasRenderingContext2D':
-                        The image argument is a canvas element with a width or height of 0.
-    
-            para evitar dibujar un bloque de texto negro, vamos a remover el atributo 'background' del text.draw()
+    Paso Nº 1) Importar el módulo random
+    Paso Nº 2) Crear la vble global "prox_enemigo", que tomará un valor random entre 1 y 2
+               (xq sólo tenemos dos tipos de enemigos)
+    Paso Nº 3) Modificaremos nuestra función actualizar_enemigos() para que SOLO mueva el enemigo seleccionado
+    Paso Nº 4) Agregar a la función reiniciar_juego una condición para reestablecer el valor del prox_enemigo a spwanear
+
+    Nota: Para facilitar las tareas de respawn implementamos posInicial al PJ, abeja y caja
+            > Cambiamos spawn a WIDTH + 50
+
 """
 
 WIDTH = 600 # Ancho de la ventana (en px)
@@ -46,26 +48,19 @@ personaje.timer_agachado = 0.0        # Tiempo restante (en segundos) antes de p
 personaje.esta_agachado = False       # Valor que controla si debemos permanecer agachados o no
 
 personaje.velocidad = 5               # velocidad (en px) a la que avanza el personaje por cada frame
+personaje.posInicial = personaje.pos
 
-""" Nota: Si quisieramos facilitar la tarea de "reiniciar"/"resetear"
-          la posición del personaje o los obstáculos/enemigos a su estado
-          inicial, podemos hacerlo de la siguiente manera:
+caja = Actor("box", (WIDTH + 50, 265))
+caja.posInicial = caja.pos
 
-    Paso 1) Creamos un atributo del actor donde registramos su posición inicial:
-
-            personaje.posInicial = personaje.pos # almacenamos la posición inicial
-
-    Paso 2) Cuando querramos resetear la posición, usaremos:
-
-            personaje.pos = personaje.posInicial
-"""
-
-caja = Actor("box", (WIDTH - 50, 265))
-abeja = Actor("bee", (WIDTH + 200, 150))
+abeja = Actor("bee", (WIDTH + 50, 150))
+abeja.posInicial = abeja.pos
 
 nva_imagen = "alien" # "alien": quieto / "left": mov. izq. / "right" : mov. dcha. / "duck" : agachado / "hurt" : dañado
 game_over = False    # Vble que registra si nuestra partida ha finalizado o no
 puntuacion = 0       # Cantidad de enemigos esquivados
+
+prox_enemigo = random.randint(1, 2) # 1: Caja / 2: Abeja
 
 ##################################################################
 
@@ -74,27 +69,32 @@ puntuacion = 0       # Cantidad de enemigos esquivados
    #####################  """
 
 def actualizar_enemigos():
-    global puntuacion
-
+    global puntuacion, prox_enemigo
     """ NOTA: Si cambiamos al velocidad de los enemigos en base a una vble, debemos incluírla """
-    # Mover la caja
-    if (caja.x < 0):      # Si la caja salió de la ventana de juego...
-        caja.x += WIDTH   # La llevamos a la otra punta de la pantalla
-        puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
-    else:
-        # Si todavía no se escapa de la ventana...
-        caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
-        
-        # Rotar la caja
-        caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
-    
-    # Mover la abeja
-    if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
-        abeja.x += WIDTH    # La llevamos a la otra punta de la pantalla
-        puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
-    else:
-        # Si todavía no se escapa de la ventana...
-        abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+
+    if (prox_enemigo == 1): 
+        # Mover la caja
+        if (caja.x < 0):      # Si la caja salió de la ventana de juego...
+            caja.pos = caja.posInicial
+            caja.angle = 0
+            puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
+            prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
+        else:
+            # Si todavía no se escapa de la ventana...
+            caja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
+            
+            # Rotar la caja
+            caja.angle = (caja.angle % 360) + 5     # roto la caja 5 grados cada frame sin pasarme de 360º
+
+    elif (prox_enemigo == 2):
+        # Mover la abeja
+        if (abeja.x < 0):       # Si la caja salió de la ventana de juego...
+            abeja.pos = abeja.posInicial
+            puntuacion += 1     # Aumento en 1 el contador de eenmigos esquivados
+            prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
+        else:
+            # Si todavía no se escapa de la ventana...
+            abeja.x -= 5     # mover la caja 5 px a la izquierda en cada frame
 
 def mover_personaje():
     global nva_imagen
@@ -130,11 +130,12 @@ def detectar_colisiones():
         game_over = True
 
 def reiniciar_juego():
-    global game_over, puntuacion, texto_colision, nva_imagen
+    global game_over, puntuacion, texto_colision, nva_imagen, prox_enemigo
     
     game_over = False
     puntuacion = 0
     texto_colision = ""
+    prox_enemigo = random.randint(1, 2) # Selecciono prox enemigo de forma aleatoria
     # Reseteamos personaje
     nva_imagen = "alien"
     personaje.image = nva_imagen
@@ -145,10 +146,10 @@ def reiniciar_juego():
     personaje.velocidad = 5
     
     # Reseteamos caja
-    caja.pos = (WIDTH - 50, 265)
+    caja.pos = caja.posInicial
     caja.angle = 0
     # Reseteamos abeja
-    abeja.pos = (WIDTH + 200, 150)
+    abeja.pos = abeja.posInicial
     # Resetear velocidad enelmigos/obstáculos
 
 ##################################################################
